@@ -27,10 +27,10 @@ class Ex(QWidget, Ui_Form):
 
         self.ld_mask = None
         self.ld_sk = None
-
-        self.modes = [0,0,0] # mask ,sketch, stroke mode
+        self.origin_mat_img = None
+        self.modes = [0,0,0,0] # mask ,sketch, stroke mode, straw mode
         self.mouse_clicked = False
-        self.scene = GraphicsScene(self.modes)
+        self.scene = GraphicsScene(self)
         self.graphicsView.setScene(self.scene)
         self.graphicsView.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.graphicsView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -88,6 +88,7 @@ class Ex(QWidget, Ui_Form):
         
             mat_img = cv2.resize(mat_img, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
             
+            self.origin_mat_img = mat_img
             mat_img = mat_img/127.5 - 1
             self.mat_img = np.expand_dims(mat_img,axis=0)
             self.scene.reset()
@@ -104,6 +105,10 @@ class Ex(QWidget, Ui_Form):
     def sketch_mode(self):
         self.mode_select(1)
 
+    def straw_color_mode(self):
+        self.mode_select(3)
+
+
     def stroke_mode(self):
         if not self.color:
             self.color_change_mode()
@@ -113,6 +118,7 @@ class Ex(QWidget, Ui_Form):
     def color_change_mode(self):
         self.dlg.exec_()
         self.color = self.dlg.currentColor().name()
+        print("color_change:{}".format(self.color))
         self.pushButton_4.setStyleSheet("background-color: %s;" % self.color)
         self.scene.get_stk_color(self.color)
 

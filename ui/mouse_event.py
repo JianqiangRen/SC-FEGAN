@@ -5,10 +5,27 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import numpy as np
 
+def color_convert(value):
+    digit = list(map(str, range(10))) + list("ABCDEF")
+    if isinstance(value, tuple):
+        string = '#'
+        for i in value:
+            a1 = i // 16
+            a2 = i % 16
+            string += digit[a1] + digit[a2]
+        return string
+    elif isinstance(value, str):
+        a1 = digit.index(value[1]) * 16 + digit.index(value[2])
+        a2 = digit.index(value[3]) * 16 + digit.index(value[4])
+        a3 = digit.index(value[5]) * 16 + digit.index(value[6])
+        return (a1, a2, a3)
+ 
+
 class GraphicsScene(QGraphicsScene):
-    def __init__(self, mode_list, parent=None):
+    def __init__(self, ex, parent=None):
         QGraphicsScene.__init__(self, parent)
-        self.modes = mode_list
+        self.ex = ex
+        self.modes = ex.modes
         self.mouse_clicked = False
         self.prev_pt = None
 
@@ -41,6 +58,17 @@ class GraphicsScene(QGraphicsScene):
 
     def mousePressEvent(self, event):
         self.mouse_clicked = True
+        if self.modes[3] == 1:
+            self.prev_pt = event.scenePos()
+            img_pos = (int(self.prev_pt.x()*self.ex.x_ratio), int(self.prev_pt.y()*self.ex.x_ratio))
+            print("image position:{}".format(img_pos))
+            b = self.ex.origin_mat_img[img_pos[1],img_pos[0],0]
+            g = self.ex.origin_mat_img[img_pos[1],img_pos[0],1]
+            r = self.ex.origin_mat_img[img_pos[1],img_pos[0],2]
+            print("image position:{},color:{}-{}-{}".format(img_pos,r,g,b))
+            self.ex.color = color_convert((r,g,b))
+            self.ex.pushButton_4.setStyleSheet("background-color: %s;" % self.ex.color)
+            self.get_stk_color(self.ex.color)
 
     def mouseReleaseEvent(self, event):
         self.prev_pt = None

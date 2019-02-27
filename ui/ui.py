@@ -28,6 +28,9 @@ class Ui_Form(object):
         self.pushButton_8 = QtWidgets.QPushButton(Form)
         self.pushButton_8.setGeometry(QtCore.QRect(370, 40, 97, 27))
         self.pushButton_8.setObjectName("pushButton_8")
+        self.pushButton_9 = QtWidgets.QPushButton(Form)
+        self.pushButton_9.setGeometry(QtCore.QRect(130, 40, 97, 27))
+        self.pushButton_9.setObjectName("pushButton_9")
         self.graphicsView = QtWidgets.QGraphicsView(Form)
         self.graphicsView.setGeometry(QtCore.QRect(20, 120, 512, 512))
         self.graphicsView.setObjectName("graphicsView")
@@ -52,7 +55,8 @@ class Ui_Form(object):
         self.pushButton_6.clicked.connect(Form.undo)
         self.pushButton_7.clicked.connect(Form.color_change_mode)
         self.pushButton_8.clicked.connect(Form.clear)
-
+        self.pushButton_9.clicked.connect(Form.straw_color_mode)
+        
         self.saveImg.clicked.connect(Form.save_img)
 
         self.arrangement.clicked.connect(Form.arrange)
@@ -61,19 +65,19 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "SC-FEGAN"))
-        self.pushButton.setText(_translate("Form", "Open Image"))
-        self.pushButton_2.setText(_translate("Form", "Mask"))
-        self.pushButton_3.setText(_translate("Form", "Sketches"))
-        self.pushButton_4.setText(_translate("Form", "Color"))
-        self.pushButton_5.setText(_translate("Form", "Complete"))
-        self.pushButton_6.setText(_translate("Form", "Undo"))
-        self.pushButton_7.setText(_translate("Form", "Palette"))
-        self.pushButton_8.setText(_translate("Form", "Clear"))
+        Form.setWindowTitle(_translate("Form", "图像生成"))
+        self.pushButton.setText(_translate("Form", "打开图像"))
+        self.pushButton_2.setText(_translate("Form", "选区"))
+        self.pushButton_3.setText(_translate("Form", "画笔"))
+        self.pushButton_4.setText(_translate("Form", "颜色"))
+        self.pushButton_5.setText(_translate("Form", "生成"))
+        self.pushButton_6.setText(_translate("Form", "撤回"))
+        self.pushButton_7.setText(_translate("Form", "调色板"))
+        self.pushButton_8.setText(_translate("Form", "清除"))
+        self.pushButton_9.setText(_translate("Form", "提取颜色"))
+        self.saveImg.setText(_translate("Form", "保存图像"))
 
-        self.saveImg.setText(_translate("Form", "Save Img"))
-
-        self.arrangement.setText(_translate("Form", "Arrange"))
+        self.arrangement.setText(_translate("Form", "arrange"))
 
 
 if __name__ == "__main__":
