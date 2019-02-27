@@ -46,6 +46,8 @@ class Ex(QWidget, Ui_Form):
         self.color = None
         self.origin_width =0
         self.origin_height = 0
+        self.x_ratio = 0
+        self.y_ratio = 0
 
     def mode_select(self, mode):
         for i in range(len(self.modes)):
@@ -82,6 +84,8 @@ class Ex(QWidget, Ui_Form):
                 self.origin_width = (self.origin_width//128 + 1) * 128
             
             print("height:{},width:{}".format(self.origin_height, self.origin_width))
+            self.x_ratio = self.origin_width /512
+        
             mat_img = cv2.resize(mat_img, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
             
             mat_img = mat_img/127.5 - 1
@@ -151,8 +155,11 @@ class Ex(QWidget, Ui_Form):
         self.output_img = result
         result = np.concatenate([result[:,:,2:3],result[:,:,1:2],result[:,:,:1]],axis=2)
         qim = QImage(result.data, result.shape[1], result.shape[0], result.strides[0], QImage.Format_RGB888)
+        qpixMap = QPixmap.fromImage(qim)
+        qpixMap = qpixMap.scaled(self.graphicsView_2.size(), Qt.KeepAspectRatio)
+        
         self.result_scene.removeItem(self.result_scene.items()[-1])
-        self.result_scene.addPixmap(QPixmap.fromImage(qim))
+        self.result_scene.addPixmap(qpixMap)
 
     def make_noise(self):
         noise = np.zeros([self.origin_height, self.origin_width, 1],dtype=np.uint8)
@@ -165,7 +172,8 @@ class Ex(QWidget, Ui_Form):
         if len(pts)>0:
             mask = np.zeros((self.origin_height, self.origin_width,3))
             for pt in pts:
-                cv2.line(mask,pt['prev'],pt['curr'],(255,255,255),12)
+                cv2.line(mask,(int(pt['prev'][0] * self.x_ratio), int(pt['prev'][1] * self.x_ratio)),
+                         (int(pt['curr'][0] * self.x_ratio), int(pt['curr'][1] * self.x_ratio)),(255,255,255),12)
             mask = np.asarray(mask[:,:,0]/255,dtype=np.uint8)
             mask = np.expand_dims(mask,axis=2)
             mask = np.expand_dims(mask,axis=0)
@@ -181,7 +189,9 @@ class Ex(QWidget, Ui_Form):
             sketch = np.zeros((self.origin_height, self.origin_width,3))
             # sketch = 255*sketch
             for pt in pts:
-                cv2.line(sketch,pt['prev'],pt['curr'],(255,255,255),1)
+                cv2.line(sketch,(int(pt['prev'][0] * self.x_ratio), int(pt['prev'][1] * self.x_ratio)),
+                         (int(pt['curr'][0] * self.x_ratio), int(pt['curr'][1] * self.x_ratio)),
+                         (255,255,255),1)
             sketch = np.asarray(sketch[:,:,0]/255,dtype=np.uint8)
             sketch = np.expand_dims(sketch,axis=2)
             sketch = np.expand_dims(sketch,axis=0)
@@ -200,7 +210,8 @@ class Ex(QWidget, Ui_Form):
                 c = pt['color'].lstrip('#')
                 color = tuple(int(c[i:i+2], 16) for i in (0, 2 ,4))
                 color = (color[2],color[1],color[0])
-                cv2.line(stroke,pt['prev'],pt['curr'],color,4)
+                cv2.line(stroke,(int(pt['prev'][0] * self.x_ratio), int(pt['prev'][1] * self.x_ratio)),
+                         (int(pt['curr'][0] * self.x_ratio), int(pt['curr'][1] * self.x_ratio)),color,4)
             stroke = stroke/127.5 - 1
             stroke = np.expand_dims(stroke,axis=0)
         else:
