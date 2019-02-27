@@ -48,7 +48,7 @@ class GraphicsScene(QGraphicsScene):
 
     def mouseMoveEvent(self, event):
         if self.mouse_clicked:
-            if self.modes[0] == 1:
+            if self.modes[0] == 1: # mask mode
                 if self.prev_pt:
                     self.drawMask(self.prev_pt, event.scenePos())
                     pts = {}
@@ -59,7 +59,7 @@ class GraphicsScene(QGraphicsScene):
                     self.prev_pt = event.scenePos()
                 else:
                     self.prev_pt = event.scenePos()
-            elif self.modes[1] == 1:
+            elif self.modes[1] == 1:    # sketch mode
                 if self.prev_pt:
                     self.drawSketch(self.prev_pt, event.scenePos())
                     pts = {}
@@ -70,7 +70,7 @@ class GraphicsScene(QGraphicsScene):
                     self.prev_pt = event.scenePos()
                 else:
                     self.prev_pt = event.scenePos()
-            elif self.modes[2] == 1:
+            elif self.modes[2] == 1:    # stroke
                 if self.prev_pt:
                     self.drawStroke(self.prev_pt, event.scenePos())
                     pts = {}

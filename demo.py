@@ -28,7 +28,7 @@ class Ex(QWidget, Ui_Form):
         self.ld_mask = None
         self.ld_sk = None
 
-        self.modes = [0,0,0]
+        self.modes = [0,0,0] # mask ,sketch, stroke mode
         self.mouse_clicked = False
         self.scene = GraphicsScene(self.modes)
         self.graphicsView.setScene(self.scene)
@@ -44,6 +44,8 @@ class Ex(QWidget, Ui_Form):
 
         self.dlg = QColorDialog(self.graphicsView)
         self.color = None
+        self.origin_width =0
+        self.origin_height = 0
 
     def mode_select(self, mode):
         for i in range(len(self.modes)):
@@ -64,8 +66,24 @@ class Ex(QWidget, Ui_Form):
             # redbrush = QBrush(Qt.red)
             # blackpen = QPen(Qt.black)
             # blackpen.setWidth(5)
-            self.image = image.scaled(self.graphicsView.size(), Qt.IgnoreAspectRatio)
-            mat_img = cv2.resize(mat_img, (512, 512), interpolation=cv2.INTER_CUBIC)
+            self.image = image.scaled(self.graphicsView.size(), Qt.KeepAspectRatio)
+
+            self.origin_height = int(np.shape(mat_img)[0])
+            self.origin_width = int(np.shape(mat_img)[1])
+            
+            if np.abs(self.origin_height - self.origin_height//128*128) <=  np.abs(self.origin_height - (self.origin_height//128 +1)*128):
+                self.origin_height = self.origin_height//128 * 128
+            else:
+                self.origin_height = (self.origin_height//128 + 1) * 128
+            
+            if np.abs(self.origin_width - self.origin_width//128*128) <=  np.abs(self.origin_width - (self.origin_width//128 +1)*128):
+                self.origin_width = self.origin_width//128 * 128
+            else:
+                self.origin_width = (self.origin_width//128 + 1) * 128
+            
+            print("height:{},width:{}".format(self.origin_height, self.origin_width))
+            mat_img = cv2.resize(mat_img, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
+            
             mat_img = mat_img/127.5 - 1
             self.mat_img = np.expand_dims(mat_img,axis=0)
             self.scene.reset()
@@ -137,7 +155,7 @@ class Ex(QWidget, Ui_Form):
         self.result_scene.addPixmap(QPixmap.fromImage(qim))
 
     def make_noise(self):
-        noise = np.zeros([512, 512, 1],dtype=np.uint8)
+        noise = np.zeros([self.origin_height, self.origin_width, 1],dtype=np.uint8)
         noise = cv2.randn(noise, 0, 255)
         noise = np.asarray(noise/255,dtype=np.uint8)
         noise = np.expand_dims(noise,axis=0)
@@ -145,14 +163,14 @@ class Ex(QWidget, Ui_Form):
 
     def make_mask(self, pts):
         if len(pts)>0:
-            mask = np.zeros((512,512,3))
+            mask = np.zeros((self.origin_height, self.origin_width,3))
             for pt in pts:
                 cv2.line(mask,pt['prev'],pt['curr'],(255,255,255),12)
             mask = np.asarray(mask[:,:,0]/255,dtype=np.uint8)
             mask = np.expand_dims(mask,axis=2)
             mask = np.expand_dims(mask,axis=0)
         else:
-            mask = np.zeros((512,512,3))
+            mask = np.zeros((self.origin_height, self.origin_width,3))
             mask = np.asarray(mask[:,:,0]/255,dtype=np.uint8)
             mask = np.expand_dims(mask,axis=2)
             mask = np.expand_dims(mask,axis=0)
@@ -160,7 +178,7 @@ class Ex(QWidget, Ui_Form):
 
     def make_sketch(self, pts):
         if len(pts)>0:
-            sketch = np.zeros((512,512,3))
+            sketch = np.zeros((self.origin_height, self.origin_width,3))
             # sketch = 255*sketch
             for pt in pts:
                 cv2.line(sketch,pt['prev'],pt['curr'],(255,255,255),1)
@@ -168,7 +186,7 @@ class Ex(QWidget, Ui_Form):
             sketch = np.expand_dims(sketch,axis=2)
             sketch = np.expand_dims(sketch,axis=0)
         else:
-            sketch = np.zeros((512,512,3))
+            sketch = np.zeros((self.origin_height, self.origin_width,3))
             # sketch = 255*sketch
             sketch = np.asarray(sketch[:,:,0]/255,dtype=np.uint8)
             sketch = np.expand_dims(sketch,axis=2)
@@ -177,7 +195,7 @@ class Ex(QWidget, Ui_Form):
 
     def make_stroke(self, pts):
         if len(pts)>0:
-            stroke = np.zeros((512,512,3))
+            stroke = np.zeros((self.origin_height, self.origin_width,3))
             for pt in pts:
                 c = pt['color'].lstrip('#')
                 color = tuple(int(c[i:i+2], 16) for i in (0, 2 ,4))
@@ -186,7 +204,7 @@ class Ex(QWidget, Ui_Form):
             stroke = stroke/127.5 - 1
             stroke = np.expand_dims(stroke,axis=0)
         else:
-            stroke = np.zeros((512,512,3))
+            stroke = np.zeros((self.origin_height, self.origin_width,3))
             stroke = stroke/127.5 - 1
             stroke = np.expand_dims(stroke,axis=0)
         return stroke

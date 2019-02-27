@@ -5,36 +5,29 @@ from ops import *
 
 class Model(object):
     def __init__(self, config):
-        self.input_size = config.INPUT_SIZE
         self.batch_size = config.BATCH_SIZE
-        image_dims = [self.input_size, self.input_size, 3]
-        sk_dims = [self.input_size, self.input_size, 1]
-        color_dims = [self.input_size, self.input_size, 3]
-        masks_dims = [self.input_size, self.input_size, 1]
-        noises_dims = [self.input_size, self.input_size, 1]
-
+        
         self.dtype = tf.float32
-
         self.images = tf.placeholder(
-            self.dtype, [self.batch_size] + image_dims, name='real_images')
+            self.dtype, [self.batch_size] + [None,None, 3], name='real_images')
         self.sketches = tf.placeholder(
-            self.dtype, [self.batch_size] + sk_dims, name='sketches')
+            self.dtype, [self.batch_size] + [None,None, 1], name='sketches')
         self.color = tf.placeholder(
-            self.dtype, [self.batch_size] + color_dims, name='color')
+            self.dtype, [self.batch_size] + [None,None, 3], name='color')
         self.masks = tf.placeholder(
-            self.dtype, [self.batch_size] + masks_dims, name='masks')
+            self.dtype, [self.batch_size] + [None,None, 1], name='masks')
         self.noises = tf.placeholder(
-            self.dtype, [self.batch_size] + noises_dims, name='noises')
+            self.dtype, [self.batch_size] + [None,None, 1], name='noises')
 
-    def build_gen(self, x, mask, name='generator',reuse=False, trainig=True):
+    def build_gen(self, x, x_height, x_width, mask, name='generator',reuse=False, trainig=True):
         cnum = 64
-        s_h, s_w = self.input_size, self.input_size
-        s_h2, s_w2 = int(self.input_size/2), int(self.input_size/2)
-        s_h4, s_w4 = int(self.input_size/4), int(self.input_size/4)
-        s_h8, s_w8 = int(self.input_size/8), int(self.input_size/8)
-        s_h16, s_w16 = int(self.input_size/16), int(self.input_size/16)
-        s_h32, s_w32 = int(self.input_size/32), int(self.input_size/32)
-        s_h64, s_w64 = int(self.input_size/64), int(self.input_size/64)
+        s_h, s_w = x_height, x_width
+        s_h2, s_w2 = tf.cast(x_height/2, tf.int32),  tf.cast(x_width/2, tf.int32)
+        s_h4, s_w4 = tf.cast(x_height/4, tf.int32), tf.cast(x_width/4, tf.int32)
+        s_h8, s_w8 = tf.cast(x_height/8, tf.int32), tf.cast(x_width/8, tf.int32)
+        s_h16, s_w16 = tf.cast(x_height/16, tf.int32), tf.cast(x_width/16, tf.int32)
+        s_h32, s_w32 = tf.cast(x_height/32, tf.int32), tf.cast(x_width/32, tf.int32)
+        s_h64, s_w64 = tf.cast(x_height/64, tf.int32), tf.cast(x_width/64, tf.int32)
         with tf.variable_scope(name, reuse=reuse):
             # encoder
             x_now = x
@@ -89,7 +82,7 @@ class Model(object):
         incom_imgs = self.images*(1-self.masks)
         batch_data = tf.concat([incom_imgs,self.sketches,\
                         self.color,self.masks,self.noises],axis=3)
-        gen_img, output_mask = self.build_gen(batch_data,self.masks)
+        gen_img, output_mask = self.build_gen(batch_data, tf.shape(batch_data)[1], tf.shape(batch_data)[2], self.masks)
         self.demo_output= gen_img*self.masks + incom_imgs
 
     def load_demo_graph(self, config):
@@ -112,7 +105,7 @@ class Model(object):
                 # self.sess.run(tf.assign(var, var_value))
                 assign_ops.append(tf.assign(var, var_value))
             self.sess.run(assign_ops)
-            self.warmup(config)
+            # self.warmup(config)
             print('Model loaded from {}....end'.format(ckpt_path))
         else:
             print('Model loading is fail')
