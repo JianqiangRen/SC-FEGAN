@@ -17,7 +17,7 @@ class Ui_Form(object):
         self.pushButton_4.setGeometry(QtCore.QRect(370, 10, 97, 27))
         self.pushButton_4.setObjectName("pushButton_4")
         self.pushButton_5 = QtWidgets.QPushButton(Form)
-        self.pushButton_5.setGeometry(QtCore.QRect(560, 360, 81, 27))
+        self.pushButton_5.setGeometry(QtCore.QRect(560, 70, 81, 27))
         self.pushButton_5.setObjectName("pushButton_5")
         self.pushButton_6 = QtWidgets.QPushButton(Form)
         self.pushButton_6.setGeometry(QtCore.QRect(490, 40, 97, 27))
@@ -73,7 +73,7 @@ class Ui_Form(object):
         self.pushButton_5.setText(_translate("Form", "生成"))
         self.pushButton_6.setText(_translate("Form", "撤回"))
         self.pushButton_7.setText(_translate("Form", "调色板"))
-        self.pushButton_8.setText(_translate("Form", "清除"))
+        self.pushButton_8.setText(_translate("Form", "还原"))
         self.pushButton_9.setText(_translate("Form", "提取颜色"))
         self.saveImg.setText(_translate("Form", "保存图像"))
 

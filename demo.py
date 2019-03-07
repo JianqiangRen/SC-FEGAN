@@ -48,6 +48,7 @@ class Ex(QWidget, Ui_Form):
         self.origin_height = 0
         self.x_ratio = 0
         self.y_ratio = 0
+        self.alpha = None
 
     def mode_select(self, mode):
         for i in range(len(self.modes)):
@@ -55,11 +56,35 @@ class Ex(QWidget, Ui_Form):
         self.modes[mode] = 1
 
     def open(self):
+        self.alpha = None
         fileName, _ = QFileDialog.getOpenFileName(self, "Open File",
                 QDir.currentPath())
         if fileName:
             image = QPixmap(fileName)
             mat_img = cv2.imread(fileName)
+            
+
+            max_length = 800
+            if np.shape(mat_img)[0] > max_length or np.shape(mat_img)[1] > max_length:
+                h = np.shape(mat_img)[0]
+                w = np.shape(mat_img)[1]
+                if h > w:
+                    mat_img = cv2.resize(mat_img, (max_length * w // h, max_length))
+                else:
+                    mat_img = cv2.resize(mat_img, (max_length, max_length * h // w))
+            
+            if np.shape(mat_img)[0] <128 or np.shape(mat_img)[1] <128:
+                h = np.shape(mat_img)[0]
+                w = np.shape(mat_img)[1]
+                if h > w:
+                    mat_img = cv2.resize(mat_img, (max_length * w // h, max_length))
+                else:
+                    mat_img = cv2.resize(mat_img, (max_length, max_length * h // w))
+
+            if np.shape(mat_img)[2] == 4:
+                mat_img = mat_img[:, :, :3]
+                self.alpha = mat_img[:,:,3]
+                
             if image.isNull():
                 QMessageBox.information(self, "Image Viewer",
                         "Cannot load %s." % fileName)
@@ -72,6 +97,10 @@ class Ex(QWidget, Ui_Form):
 
             self.origin_height = int(np.shape(mat_img)[0])
             self.origin_width = int(np.shape(mat_img)[1])
+            
+            
+            
+            
             
             if np.abs(self.origin_height - self.origin_height//128*128) <=  np.abs(self.origin_height - (self.origin_height//128 +1)*128):
                 self.origin_height = self.origin_height//128 * 128
@@ -87,6 +116,8 @@ class Ex(QWidget, Ui_Form):
             self.x_ratio = self.origin_width /512
         
             mat_img = cv2.resize(mat_img, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
+            if self.alpha is not None:
+                self.alpha = cv2.resize(self.alpha, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
             
             self.origin_mat_img = mat_img
             mat_img = mat_img/127.5 - 1
