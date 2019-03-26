@@ -60,10 +60,8 @@ class Ex(QWidget, Ui_Form):
         fileName, _ = QFileDialog.getOpenFileName(self, "Open File",
                 QDir.currentPath())
         if fileName:
-            image = QPixmap(fileName)
             mat_img = cv2.imread(fileName)
             
-
             max_length = 800
             if np.shape(mat_img)[0] > max_length or np.shape(mat_img)[1] > max_length:
                 h = np.shape(mat_img)[0]
@@ -84,24 +82,10 @@ class Ex(QWidget, Ui_Form):
             if np.shape(mat_img)[2] == 4:
                 mat_img = mat_img[:, :, :3]
                 self.alpha = mat_img[:,:,3]
-                
-            if image.isNull():
-                QMessageBox.information(self, "Image Viewer",
-                        "Cannot load %s." % fileName)
-                return
-
-            # redbrush = QBrush(Qt.red)
-            # blackpen = QPen(Qt.black)
-            # blackpen.setWidth(5)
-            self.image = image.scaled(self.graphicsView.size(), Qt.KeepAspectRatio)
 
             self.origin_height = int(np.shape(mat_img)[0])
             self.origin_width = int(np.shape(mat_img)[1])
-            
-            
-            
-            
-            
+
             if np.abs(self.origin_height - self.origin_height//128*128) <=  np.abs(self.origin_height - (self.origin_height//128 +1)*128):
                 self.origin_height = self.origin_height//128 * 128
             else:
@@ -120,6 +104,15 @@ class Ex(QWidget, Ui_Form):
                 self.alpha = cv2.resize(self.alpha, (self.origin_width, self.origin_height), interpolation=cv2.INTER_CUBIC)
             
             self.origin_mat_img = mat_img
+            cv2.imwrite('tmp.jpg', mat_img)
+            image = QPixmap('tmp.jpg')
+
+            if image.isNull():
+                QMessageBox.information(self, "Image Viewer",
+                                        "Cannot load %s." % fileName)
+                return
+            self.image = image.scaled(self.graphicsView.size(), Qt.KeepAspectRatio)
+            
             mat_img = mat_img/127.5 - 1
             self.mat_img = np.expand_dims(mat_img,axis=0)
             self.scene.reset()
@@ -129,6 +122,7 @@ class Ex(QWidget, Ui_Form):
             if len(self.result_scene.items())>0:
                 self.result_scene.removeItem(self.result_scene.items()[-1])
             self.result_scene.addPixmap(self.image)
+            
 
     def mask_mode(self):
         self.mode_select(0)
